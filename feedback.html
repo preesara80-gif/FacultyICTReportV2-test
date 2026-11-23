@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Feedback | Guru Nanak College (Autonomous)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700;800&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-900:#0b2545; --navy-800:#13315c; --navy-700:#1d4e89;
+  --gold-500:#e8a020; --gold-400:#f4b942;
+  --ink:#182a44; --muted:#5b6b83; --line:#dde5f0;
+  --disp:'Bitter', Georgia, serif; --body:'Public Sans','Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--body); color:var(--ink); min-height:100vh;
+  background: radial-gradient(900px 480px at 88% -120px, rgba(232,160,32,.10), transparent 60%),
+              radial-gradient(1100px 620px at -140px 18%, rgba(29,78,137,.10), transparent 60%), #eef2f7;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.card{
+  max-width:480px; width:100%; background:#fff; border-radius:16px; border:1px solid var(--line);
+  box-shadow:0 14px 40px rgba(11,37,69,.14); overflow:hidden;
+}
+.card-head{background:linear-gradient(135deg,#081c38,#13315c 60%,#1d4e89); color:#fff; padding:22px 26px; border-bottom:4px solid var(--gold-500)}
+.card-head h1{font-family:var(--disp); font-size:1.25rem; margin-bottom:4px}
+.card-head p{font-size:.8rem; color:#cfe0f5}
+.card-body{padding:24px 26px 28px}
+.tool-name{font-size:.95rem; font-weight:700; color:var(--navy-900); background:#f0f5fc; border:1px solid #d7e3f5; border-radius:8px; padding:10px 14px; margin-bottom:20px}
+.q{margin-bottom:22px}
+.q label{display:block; font-size:.9rem; font-weight:700; color:var(--navy-800); margin-bottom:10px}
+.q small{display:block; font-weight:400; color:var(--muted); font-size:.76rem; margin-top:2px}
+.scale{display:flex; gap:8px}
+.scale button{
+  flex:1; padding:.7rem 0; border:1.5px solid var(--line); border-radius:8px; background:#fbfcfe;
+  font:700 1rem var(--body); color:var(--navy-800); cursor:pointer; transition:.15s;
+}
+.scale button:hover{border-color:var(--navy-700)}
+.scale button.sel{background:var(--navy-800); border-color:var(--navy-800); color:#fff}
+.scale-labels{display:flex; justify-content:space-between; font-size:.66rem; color:var(--muted); margin-top:5px}
+.submit-btn{
+  width:100%; padding:.85rem; border:none; border-radius:10px; margin-top:6px;
+  background:linear-gradient(135deg,var(--gold-500),var(--gold-400)); color:var(--navy-900);
+  font:700 .95rem var(--body); cursor:pointer;
+}
+.submit-btn:disabled{opacity:.55; cursor:wait}
+.status{margin-top:14px; font-size:.85rem; font-weight:600; text-align:center}
+.status.err{color:#b3402e}
+.thanks{text-align:center; padding:20px 0}
+.thanks .tick{width:56px;height:56px;border-radius:50%;background:#e3f2e9;color:#1e7d4f;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 14px}
+.thanks h2{font-family:var(--disp); color:var(--navy-900); margin-bottom:6px}
+.thanks p{color:var(--muted); font-size:.88rem}
+.missing{text-align:center; padding:30px 10px; color:var(--muted)}
+.expired-banner{background:#f8d7da; border:2px solid #dc3545; border-radius:10px; padding:20px; text-align:center; color:#721c24}
+.expired-banner h2{font-family:var(--disp); font-size:1.1rem; margin-bottom:8px; color:#721c24}
+.expired-banner p{font-size:.9rem; margin-bottom:10px}
+.expired-banner .expired-date{font-weight:700; font-size:.95rem; color:#dc3545}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-head">
+    <h1>Quick ICT Feedback</h1>
+    <p>Guru Nanak College (Autonomous), Chennai — private, takes 15 seconds</p>
+  </div>
+  <div class="card-body" id="cardBody">
+    <div class="missing">Loading…</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // Same project as index.html and admin.html — keep all three in sync if you rotate keys.
+  const firebaseConfig = {
+    apiKey: "AIzaSyCxJyYpAOLqokkFfL9KW6RkQJc2w-eJS18",
+    authDomain: "faculty-ict-report.firebaseapp.com",
+    projectId: "faculty-ict-report",
+    storageBucket: "faculty-ict-report.firebasestorage.app",
+    messagingSenderId: "447012178353",
+    appId: "1:447012178353:web:a39e350036e1e6e9205590"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    db.settings({ experimentalForceLongPolling: true, useFetchStreams: false });
+  } catch (e) {
+    console.warn("Firebase not configured:", e.message);
+  }
+</script>
+
+<script>
+const $ = (s, c = document) => c.querySelector(s);
+const params = new URLSearchParams(location.search);
+const entryId = params.get('entry');
+const body = $('#cardBody');
+
+const CRITERIA = [
+  { key: 'clarity',    label: 'Clarity', hint: 'Was the tool easy to understand and follow?' },
+  { key: 'engagement', label: 'Engagement', hint: 'Did it keep you interested and involved?' },
+  { key: 'usefulness', label: 'Usefulness', hint: 'Did it help you understand the topic better?' }
+];
+
+if (!entryId) {
+  body.innerHTML = '<div class="missing">This feedback link is missing some information and can\'t be used. Please ask your faculty member for the correct link or QR code.</div>';
+} else if (!db) {
+  body.innerHTML = '<div class="missing">This page isn\'t connected properly right now. Please tell your faculty member — the feedback link needs to be fixed.</div>';
+} else {
+  renderForm();
+}
+
+// Fetch the ICT tool name and expiration status from Firestore
+async function fetchEntryData(){
+  try {
+    const doc = await db.collection('ictEntries').doc(entryId).get();
+    if(doc.exists){
+      const data = doc.data();
+      const toolName = data.tool || data.toolName || 'ICT Tool';
+      const expiresAt = data.expiresAt ? data.expiresAt.toDate() : null;
+      return { toolName, expiresAt };
+    }
+  } catch(e){
+    console.warn('Error fetching entry data:', e);
+  }
+  return { toolName: 'ICT Tool', expiresAt: null };
+}
+
+async function renderForm(){
+  const { toolName, expiresAt } = await fetchEntryData();
+  
+  // Check if feedback link has expired
+  const now = new Date();
+  const isExpired = expiresAt && expiresAt < now;
+  
+  if(isExpired){
+    const expiredDateStr = expiresAt.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+    body.innerHTML = `
+      <div class="expired-banner">
+        <h2>❌ This Feedback Link Has Expired</h2>
+        <p>This link was only active for 15 days from when the report was saved.</p>
+        <p class="expired-date">Expired on: ${expiredDateStr}</p>
+        <p style="margin-top:12px; font-size:.85rem">If you still want to provide feedback, please contact your faculty member for an updated link.</p>
+      </div>`;
+    return;
+  }
+  
+  const scaleHTML = (key) => `
+    <div class="scale" data-key="${key}">
+      ${[1,2,3,4,5].map(n => `<button type="button" data-val="${n}">${n}</button>`).join('')}
+    </div>
+    <div class="scale-labels"><span>Not at all</span><span>Very much</span></div>`;
+
+  // Clean form - ONLY tool name + ratings (for students)
+  body.innerHTML = `
+    <div class="tool-name">Rating "${toolName}" (ICT Tool)</div>
+    ${CRITERIA.map(c => `
+      <div class="q">
+        <label>${c.label} <small>${c.hint}</small></label>
+        ${scaleHTML(c.key)}
+      </div>`).join('')}
+    <button type="button" class="submit-btn" id="btnSubmit">Submit Feedback</button>
+    <p class="status" id="status"></p>
+  `;
+
+  const selections = {};
+  document.querySelectorAll('.scale').forEach(scaleEl => {
+    scaleEl.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-val]');
+      if (!btn) return;
+      selections[scaleEl.dataset.key] = +btn.dataset.val;
+      scaleEl.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b === btn));
+    });
+  });
+
+  $('#btnSubmit').addEventListener('click', async () => {
+    const statusEl = $('#status');
+    statusEl.className = 'status'; statusEl.textContent = '';
+    const missing = CRITERIA.filter(c => !selections[c.key]);
+    if (missing.length){
+      statusEl.textContent = 'Please rate all three before submitting.';
+      statusEl.classList.add('err');
+      return;
+    }
+    const btn = $('#btnSubmit'); btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out — check your connection and try again.')), 15000));
+      await Promise.race([
+        db.collection('feedbackResponses').add({
+          entryId,
+          clarity: selections.clarity,
+          engagement: selections.engagement,
+          usefulness: selections.usefulness,
+          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }),
+        timeout
+      ]);
+      body.innerHTML = `
+        <div class="thanks">
+          <div class="tick">✓</div>
+          <h2>Thank you!</h2>
+          <p>Your feedback has been recorded privately and will help improve teaching.</p>
+        </div>`;
+    } catch (e) {
+      statusEl.textContent = 'Submission failed: ' + e.message;
+      statusEl.classList.add('err');
+      btn.disabled = false; btn.textContent = 'Submit Feedback';
+    }
+  });
+}
+</script>
+</body>
+</html>
