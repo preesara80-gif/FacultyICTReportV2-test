@@ -401,10 +401,30 @@ body.mode-ped .workspace{grid-template-columns:minmax(0,1fr)}
 .ped-card-head b{flex:1;font-family:var(--disp);font-size:.98rem;color:var(--navy-900)}
 .ped-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .ped-grid .span2{grid-column:1/-1}
-.ped-view{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;margin-top:12px}
-.ped-view > div > span{display:block;font-size:.62rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
-.ped-view p{font-size:.85rem;color:var(--ink);line-height:1.5}
-.ped-view .pv-full{grid-column:1/-1}
+.ped-doc{background:#fff;color:#161212;font-family:'Times New Roman',Times,'Liberation Serif',serif;padding:30px 36px 26px;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(74,10,20,.08);max-width:940px;margin:0 auto 24px}
+.ped-doc .pd-head{display:flex;align-items:center;gap:18px;border-bottom:2px solid #8e0f1c;padding-bottom:12px}
+.ped-doc .pd-head img{width:74px;height:74px;object-fit:contain;flex:none}
+.ped-doc .pd-college{flex:1;text-align:center;padding-right:74px}
+.ped-doc .pd-college h1{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:.3px;color:#161212}
+.ped-doc .pd-college p{font-size:11.5px;margin:1px 0;line-height:1.4}
+.ped-doc .pd-title{text-align:center;font-size:16px;font-weight:700;text-decoration:underline;text-underline-offset:3px;letter-spacing:.5px;margin:22px 0 16px}
+.ped-doc .pd-sub{font-size:14px;font-weight:700;margin:0 0 8px}
+.ped-doc .pd-facts{margin:0 0 18px 20px;padding:0 0 0 14px;font-size:13.5px;line-height:1.8}
+.ped-doc .pd-facts li{padding-left:2px}
+.ped-doc .pd-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+.ped-doc .pd-table th{background:#f3e3e4;border:1px solid #6b5b5c;padding:8px 6px;text-align:center;font-weight:700;line-height:1.3;vertical-align:middle}
+.ped-doc .pd-table td{border:1px solid #6b5b5c;padding:8px 9px;vertical-align:top;line-height:1.5;text-align:left;overflow-wrap:break-word}
+.ped-doc .pd-table td.c{text-align:center;font-weight:700}
+.ped-doc .pd-table td.m{font-weight:700}
+.ped-doc .pd-table tbody tr:nth-child(even) td{background:#fcf7f7}
+.ped-doc .pd-chart-sec{margin-top:22px;border-top:1px solid #d9c9ca;padding-top:14px}
+.ped-doc .pd-chart-row{display:flex;align-items:center;gap:30px;flex-wrap:wrap}
+.ped-doc .pd-canvas{width:230px;height:230px;flex:none}
+.ped-doc .pd-canvas img,.ped-doc .pd-canvas canvas{width:230px!important;height:230px!important}
+.ped-doc .pd-legend{list-style:none;margin:0;padding:0;font-size:13px;line-height:2}
+.ped-doc .pd-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:9px;vertical-align:-1px}
+.ped-doc .pd-note{font-size:11px;color:#6b5b5c;margin:8px 0 0}
+.ped-doc.ped-pdf{border:none;box-shadow:none;border-radius:0;padding:0;margin:0;max-width:none}
 .ped-annex-note{font-size:.8rem;color:var(--muted);margin-top:12px}
 .completion-banner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 18px;border-radius:12px;margin:-6px 0 18px;border:1.5px solid}
 .completion-banner[hidden]{display:none}
@@ -418,12 +438,15 @@ body.mode-ped .workspace{grid-template-columns:minmax(0,1fr)}
 .load-chips{display:flex;gap:6px;margin-top:4px}
 .load-result-item .load-chips span.load-chip{font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:99px;background:#f1e9e9;color:var(--muted)}
 .load-result-item .load-chips span.load-chip.on{background:#e3f2e9;color:#1e7d4f}
-@media(max-width:700px){.ped-grid,.ped-view,.mode-bar{grid-template-columns:1fr}}
+@media(max-width:700px){.ped-grid,.mode-bar{grid-template-columns:1fr}}
 @media print{
   body{background:#fff}
   .masthead,.workspace,.cta-row,.report-actions,.site-foot,#toast,.empty-report{display:none!important}
   #reportZone,#pedReportZone{margin:0}
   .sheet{box-shadow:none;border:none;max-width:100%;border-radius:0}
+  .ped-doc{box-shadow:none;border:none;max-width:100%;border-radius:0;padding:0;margin:0}
+  .ped-doc .pd-table thead{display:table-header-group}
+  .ped-doc .pd-table tr{break-inside:avoid}
   @page{margin:8mm}
 }
 /* Logout / Exit */
@@ -1951,7 +1974,8 @@ async function downloadQRCode(qrUrl, toolName, entryId){
 
 /* ---------- PDF export ---------- */
 async function downloadPDF(){
-  const _ped = document.body.classList.contains('mode-ped');
+  if(document.body.classList.contains('mode-ped')) return downloadPedPDF();
+  const _ped = false;
   if(!(_ped ? pedReportReady : reportReady)){ toast('Generate the report first.', 'warn'); return; }
   if(!window.html2canvas || !window.jspdf){ toast('PDF libraries could not load — check your connection, or use Print instead.', 'warn'); return; }
   const btn = _ped ? $('#btnPedPDF') : $('#btnPDF'); btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = '⏳ Preparing PDF…';
@@ -2523,6 +2547,13 @@ $('#btnNewSubject').addEventListener('click', startNewSubject);
    for new ICT reports. Section 01 is shared by both records, and the PIN
    check, ownership rule and duplicate protection work the same way.
    ====================================================================== */
+const PED_APPROACHES = [
+  { key: 'Teacher-led',        color: '#8e0f1c' },
+  { key: 'Learner-centred',    color: '#e8a020' },
+  { key: 'Collaborative',      color: '#2f8f6b' },
+  { key: 'Experiential',       color: '#d9604c' },
+  { key: 'Technology-enabled', color: '#7a6a9a' }
+];
 let pedMode = false;
 let pedRef = null;            // Firestore ref of the pedagogy record open in this sitting
 let pedLoadedKey = null;      // subject key of that record
@@ -2540,8 +2571,10 @@ function pedCardMarkup(){
       <button type="button" class="btn btn-ghost ped-remove" aria-label="Remove this pedagogy method">✕ Remove</button>
     </div>
     <div class="ped-grid">
-      <div class="field span2"><span class="label">Pedagogy Method Used</span>
+      <div class="field"><span class="label">Pedagogy Method Used</span>
         <input type="text" class="p-method" list="pedMethodList" placeholder="e.g., Flipped Classroom with Peer Discussion" aria-label="Pedagogy method used"></div>
+      <div class="field"><span class="label">Teaching Approach (optional — for the chart)</span>
+        <select class="p-approach" aria-label="Teaching approach"><option value="">Select approach…</option>${PED_APPROACHES.map(a => `<option value="${a.key}">${a.key}</option>`).join('')}</select></div>
       <div class="field span2"><span class="label">Description / Strategy</span>
         <textarea class="p-desc" rows="3" placeholder="How the method is carried out in class…" aria-label="Description or strategy"></textarea></div>
       <div class="field"><span class="label">Tools / Resources</span>
@@ -2562,6 +2595,7 @@ function pedAddCard(v){
   const card = wrap.firstElementChild;
   if(v){
     card.querySelector('.p-method').value = v.method || '';
+    card.querySelector('.p-approach').value = v.approach || '';
     card.querySelector('.p-desc').value = v.description || '';
     card.querySelector('.p-tools').value = v.tools || '';
     card.querySelector('.p-freq').value = v.frequency || '';
@@ -2581,7 +2615,7 @@ function pedCollect(){
   const methods = []; let badCard = null;
   $$('#pedEntries .ped-card').forEach(card => {
     const g = sel => card.querySelector(sel).value.trim();
-    const m = { method: g('.p-method'), description: g('.p-desc'), tools: g('.p-tools'), frequency: g('.p-freq'), effectiveness: g('.p-eff'), remarks: g('.p-rem') };
+    const m = { method: g('.p-method'), approach: g('.p-approach'), description: g('.p-desc'), tools: g('.p-tools'), frequency: g('.p-freq'), effectiveness: g('.p-eff'), remarks: g('.p-rem') };
     if(!Object.values(m).some(Boolean)) return;
     if(!m.method && !badCard) badCard = card;
     methods.push(m);
@@ -2807,7 +2841,7 @@ async function savePedagogy(data, opts = {}){
 
     const record = {
       faculty: fac,
-      methods: data.methods.map(m => ({ method: m.method, description: m.description, tools: m.tools, frequency: m.frequency, effectiveness: m.effectiveness, remarks: m.remarks })),
+      methods: data.methods.map(m => ({ method: m.method, approach: m.approach || '', description: m.description, tools: m.tools, frequency: m.frequency, effectiveness: m.effectiveness, remarks: m.remarks })),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     if(!isUpdate) record.submittedAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -2850,73 +2884,79 @@ saveToDatabase = async function(...args){
   return r;
 };
 
-/* ---------- report ---------- */
-function buildPedSheetHTML(d){
+/* ---------- report (follows the college's Word "Learning Pedagogy Recording Table") ---------- */
+let pedChart = null, pedLastData = null;
+function pedApproachStats(methods){
+  const tagged = methods.filter(m => m.approach);
+  const rows = PED_APPROACHES.map(a => {
+    const count = tagged.filter(m => m.approach === a.key).length;
+    return { name: a.key, color: a.color, count, pct: tagged.length ? Math.round(count * 100 / tagged.length) : 0 };
+  }).filter(r => r.count > 0);
+  return { rows, tagged: tagged.length, total: methods.length };
+}
+// The report is assembled from these parts, both for the on-screen view and for the
+// fixed-width pages of the PDF (so the PDF never depends on the window size).
+function pedDocParts(d, opts = {}){
   const { fac, methods } = d;
-  const cell = (l, v) => `<div class="fac-cell"><span>${l}</span><b>${v ? esc(v) : '<span class="nil">Not provided</span>'}</b></div>`;
-  const cells = [
-    cell('Employee ID', fac.empId), cell('Faculty Name', fac.name), cell('Shift', fac.shift), cell('School', fac.school),
-    cell('Department', fac.dept), cell('Course Title', fac.course), cell('Course Code', fac.code),
-    cell('Batch', fac.batch), cell('Semester', fac.sem), cell('Year', fac.year), cell('Academic Year', fac.ay)
-  ].join('');
-  const tile = (label, val, color) => `<div class="stat-tile" style="border-top:3px solid ${color}"><b>${val}</b><span>${label}</span></div>`;
-  const pv = (label, val, full) => `<div class="${full ? 'pv-full' : ''}"><span>${label}</span><p>${nl2br(val)}</p></div>`;
-  const cards = methods.map(m => `
-    <article class="tool-card">
-      <div class="tc-head">
-        <span class="tc-idx">${m.idx}</span>
-        <h4>${esc(m.method)}</h4>
-        ${m.frequency ? `<span class="tag tag-cat">${esc(m.frequency)}</span>` : ''}
-      </div>
-      <div class="ped-view">
-        ${pv('Description / Strategy', m.description, true)}
-        ${pv('Tools / Resources', m.tools)}
-        ${pv('Effectiveness (Student Feedback / Outcomes)', m.effectiveness)}
-        ${pv('Remarks / Improvements', m.remarks, true)}
-      </div>
-    </article>`).join('');
-  const annex = `
-    <article class="tool-card">
-      <div class="tc-head">
-        <span class="tc-idx">${methods.length + 1}</span>
-        <h4>ICT-enabled Teaching</h4>
-        <span class="tag tag-cat">Annexed separately</span>
-      </div>
-      <p class="tc-purpose">Recorded in the Faculty ICT Usage Visual Report for this subject.</p>
-    </article>`;
-  const withTools = methods.filter(m => m.tools).length;
-  const withRemarks = methods.filter(m => m.remarks).length;
-  return `
-  <section class="sheet" id="pedReportSheet">
-    <header class="sheet-head">
-      <div class="crest crest-slot"></div>
-      <div class="sh-title">
-        <h1 class="sh-college">GURU NANAK COLLEGE <span>(AUTONOMOUS)</span></h1>
-        <p class="sh-l2">A Sikh Minority Institution, Unit of Guru Nanak Education Society</p>
-        <p class="sh-l3">Affiliated to University of Madras, Approved by AICTE | Accredited at A++ Grade by NAAC</p>
-      </div>
-      <div class="sh-badge"><span>Learning Pedagogy Visual Report</span></div>
-    </header>
-    <div class="sheet-body">
-      <div class="rp-section">
-        <div class="rp-h"><span class="bar"></span><h3>Faculty Details</h3></div>
-        <div class="fac-grid">${cells}</div>
-      </div>
-      <div class="rp-section">
-        <div class="rp-h"><span class="bar"></span><h3>Pedagogy Snapshot</h3></div>
-        <div class="stat-strip" style="grid-template-columns:repeat(3,1fr)">
-          ${tile('Pedagogy Methods', methods.length, '#8e0f1c')}
-          ${tile('With Tools / Resources', withTools, '#c10327')}
-          ${tile('Improvements Noted', withRemarks, '#e8a020')}
+  const v = x => x ? esc(x) : '—';
+  const cell = x => x ? nl2br(x) : '—';
+  const sem = (fac.sem || '').replace(/^Semester\s*/i, '') || '—';
+  const yr = (fac.year || '').replace(/^Year\s*/i, '') || '—';
+  const head = `
+    <div class="pd-top">
+      <div class="pd-head">
+        <img src="${LOGO_DATA_URL}" alt="Guru Nanak College emblem">
+        <div class="pd-college">
+          <h1>GURU NANAK COLLEGE (AUTONOMOUS)</h1>
+          <p>A Sikh Minority Institution | Unit of Guru Nanak Educational Society (Regd.)</p>
+          <p>Affiliated to University of Madras | Approved by AICTE | Accredited at “A++” Grade by NAAC</p>
+          <p>Guru Nanak Salai, Velachery, Chennai - 600042</p>
         </div>
       </div>
-      <div class="rp-section">
-        <div class="rp-h"><span class="bar"></span><h3>Pedagogy Methods Used</h3>
-          <span class="rp-sub">${methods.length} ${methods.length === 1 ? 'method' : 'methods'} recorded</span></div>
-        ${cards}${annex}
+      <h2 class="pd-title">LEARNING PEDAGOGY RECORDING TABLE</h2>
+      <h3 class="pd-sub">1. Faculty Details</h3>
+      <ul class="pd-facts">
+        <li><b>Name:</b> ${v(fac.name)}${fac.empId ? ' (' + esc(fac.empId) + ')' : ''}</li>
+        <li><b>Department:</b> ${v(fac.dept)}</li>
+        <li><b>Course Title &amp; Code:</b> ${v(fac.course)} &amp; ${v(fac.code)}</li>
+        <li><b>Batch / Semester / Year:</b> ${v(fac.batch)} / ${esc(sem)} / ${esc(yr)}</li>
+        <li><b>Academic Year:</b> ${v(fac.ay)}</li>
+      </ul>
+    </div>`;
+  const colgroup = '<colgroup><col style="width:5%"><col style="width:13%"><col style="width:22%"><col style="width:15%"><col style="width:11%"><col style="width:19%"><col style="width:15%"></colgroup>';
+  const thead = '<thead><tr><th>Sr. No.</th><th>Pedagogy Method Used</th><th>Description / Strategy</th><th>Tools / Resources</th><th>Frequency / Duration</th><th>Effectiveness (Student Feedback / Outcomes)</th><th>Remarks / Improvements</th></tr></thead>';
+  const rows = methods.map(m => `<tr><td class="c">${m.idx}</td><td class="m">${esc(m.method)}</td><td>${cell(m.description)}</td><td>${cell(m.tools)}</td><td>${cell(m.frequency)}</td><td>${cell(m.effectiveness)}</td><td>${cell(m.remarks)}</td></tr>`);
+  const annex = `<tr><td class="c">${methods.length + 1}</td><td class="m">ICT-enabled Teaching</td><td colspan="5">Annexed separately (Faculty ICT Usage Record)</td></tr>`;
+  const st = pedApproachStats(methods);
+  let chart = '';
+  if(st.rows.length){
+    const visual = opts.chartImg ? `<img src="${opts.chartImg}" alt="Teaching approach mix">` : '<canvas id="pedApproachChart" width="460" height="460"></canvas>';
+    chart = `
+    <div class="pd-chart-sec">
+      <h3 class="pd-sub">Teaching Approach Mix</h3>
+      <div class="pd-chart-row">
+        <div class="pd-canvas">${visual}</div>
+        <ul class="pd-legend">${st.rows.map(r => `<li><i style="background:${r.color}"></i>${esc(r.name)} — ${r.count} ${r.count === 1 ? 'method' : 'methods'} (${r.pct}%)</li>`).join('')}</ul>
       </div>
-    </div>
+      <p class="pd-note">Based on the ${st.tagged} of ${st.total} ${st.total === 1 ? 'method' : 'methods'} for which a teaching approach was selected.</p>
+    </div>`;
+  }
+  return { head, colgroup, thead, rows, annex, chart, stats: st };
+}
+function buildPedSheetHTML(d){
+  const P = pedDocParts(d);
+  return `<section class="ped-doc" id="pedReportSheet">${P.head}
+    <table class="pd-table">${P.colgroup}${P.thead}<tbody>${P.rows.join('')}${P.annex}</tbody></table>${P.chart}
   </section>`;
+}
+function pedDrawChart(d){
+  const st = pedApproachStats(d.methods), cv = $('#pedApproachChart');
+  if(!cv || !st.rows.length || !window.Chart) return;
+  pedChart = new Chart(cv, {
+    type: 'doughnut',
+    data: { labels: st.rows.map(r => r.name), datasets: [{ data: st.rows.map(r => r.count), backgroundColor: st.rows.map(r => r.color), borderColor: '#ffffff', borderWidth: 3 }] },
+    options: { responsive: false, animation: false, cutout: '58%', plugins: { legend: { display: false } } }
+  });
 }
 function pedGenerate(){
   if(!$('#fDept').value){ toast('Please select your School and Department in Faculty Details.', 'warn'); $('#fSchool').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
@@ -2924,6 +2964,8 @@ function pedGenerate(){
   if(!methods.length){ toast('Please add at least one pedagogy method before generating the report.', 'warn'); return; }
   if(badCard){ toast('Give each pedagogy method a name before generating the report.', 'warn'); badCard.querySelector('.p-method').focus(); return; }
   const data = { fac: readFaculty(), methods, generatedOn: new Date() };
+  pedLastData = data;
+  if(pedChart){ pedChart.destroy(); pedChart = null; }
   $('#pedReportZone').innerHTML = `
     <div class="report-actions">
       <button class="btn btn-ghost" id="btnPedRegen" type="button">↻ Regenerate</button>
@@ -2933,15 +2975,89 @@ function pedGenerate(){
       <button class="btn btn-logout" id="btnPedLogout" type="button">⎋ Logout / Exit</button>
     </div>
     <p id="pedSaveStatus" class="save-status"></p>` + buildPedSheetHTML(data);
-  injectCrests();
+  pedDrawChart(data);
   pedReportReady = true;
-  $('#btnPedPDF').addEventListener('click', downloadPDF);
+  $('#btnPedPDF').addEventListener('click', downloadPedPDF);
   $('#btnPedLogout').addEventListener('click', doLogout);
   $('#btnPedPrint').addEventListener('click', () => window.print());
   $('#btnPedRegen').addEventListener('click', pedGenerate);
   $('#btnPedSave').addEventListener('click', ev => { ev.preventDefault(); savePedagogy(data); });
   setTimeout(() => $('#pedReportZone').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   toast('Pedagogy report generated ✔');
+}
+
+/* PDF: the report is laid out on fixed-width pages (independent of the window size). The table
+   heading row is repeated on every page and a row is never split across two pages. */
+async function downloadPedPDF(){
+  if(!pedReportReady || !pedLastData){ toast('Generate the report first.', 'warn'); return; }
+  if(!window.html2canvas || !window.jspdf){ toast('PDF libraries could not load — check your connection, or use Print instead.', 'warn'); return; }
+  const btn = $('#btnPedPDF'); btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = '⏳ Preparing PDF…';
+  let host = null;
+  try{
+    const d = pedLastData;
+    const live = $('#pedApproachChart');
+    const P = pedDocParts(d, { chartImg: live ? live.toDataURL('image/png') : '' });
+    const DOC_W = 740, pageW = 210, pageH = 297, mX = 12, mTop = 12, mBottom = 14;
+    const usableW = pageW - mX * 2, usableH = pageH - mTop - mBottom;
+    const maxPx = usableH / (usableW / DOC_W);
+    host = document.createElement('div');
+    host.style.cssText = `position:fixed;left:-10000px;top:0;width:${DOC_W}px;background:#fff;`;
+    document.body.appendChild(host);
+    const wrap = inner => `<section class="ped-doc ped-pdf" style="width:${DOC_W}px">${inner}</section>`;
+    const table = rows => `<table class="pd-table">${P.colgroup}${P.thead}<tbody>${rows}</tbody></table>`;
+    const imagesReady = () => Promise.all([...host.querySelectorAll('img')].map(i => i.decode ? i.decode().catch(() => {}) : null));
+
+    // 1) measure everything once
+    const allRows = P.rows.concat([P.annex]);
+    host.innerHTML = wrap(P.head + table(allRows.join('')) + P.chart);
+    await imagesReady();
+    const root = host.firstElementChild;
+    const headH = root.querySelector('.pd-top').offsetHeight + 14;
+    const theadH = root.querySelector('thead').offsetHeight;
+    const rowH = [...root.querySelectorAll('tbody tr')].map(r => r.offsetHeight + 1);
+    const chartEl = root.querySelector('.pd-chart-sec');
+    const chartH = chartEl ? chartEl.offsetHeight + 8 : 0;
+
+    // 2) decide what goes on each page
+    const pages = [];
+    let cur = { head: true, rows: [], chart: false }, used = headH;
+    allRows.forEach((html, i) => {
+      const need = rowH[i] + (cur.rows.length ? 0 : theadH);
+      if(cur.rows.length && used + need > maxPx){ pages.push(cur); cur = { head: false, rows: [], chart: false }; used = 0; }
+      used += rowH[i] + (cur.rows.length ? 0 : theadH);
+      cur.rows.push(html);
+    });
+    if(chartEl){
+      if(used + chartH > maxPx){ pages.push(cur); cur = { head: false, rows: [], chart: false }; used = 0; }
+      cur.chart = true;
+    }
+    pages.push(cur);
+
+    // 3) render each page and place it
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    for(let n = 0; n < pages.length; n++){
+      const pg = pages[n];
+      host.innerHTML = wrap((pg.head ? P.head : '') + (pg.rows.length ? table(pg.rows.join('')) : '') + (pg.chart ? P.chart : ''));
+      await imagesReady();
+      const canvas = await html2canvas(host.firstElementChild, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      let w = usableW, h = canvas.height * usableW / canvas.width;
+      if(h > usableH){ const k = usableH / h; w *= k; h = usableH; }
+      if(n > 0) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', mX + (usableW - w) / 2, mTop, w, h);
+      pdf.setFontSize(8); pdf.setTextColor(120, 120, 120);
+      pdf.text(`Page ${n + 1} of ${pages.length}`, pageW / 2, pageH - 7, { align: 'center' });
+    }
+    const name = String(d.fac.name || 'Faculty').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    pdf.save(`GNC_Pedagogy_Report_${name}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    toast('PDF downloaded ✔');
+  } catch(e){
+    console.error(e);
+    toast('Could not create the PDF: ' + e.message, 'warn');
+  } finally {
+    if(host) host.remove();
+    btn.disabled = false; btn.innerHTML = old;
+  }
 }
 $('#btnPedGenerate').addEventListener('click', pedGenerate);
 refreshModeStatus();
